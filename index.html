@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body class="bg-slate-100 p-6 flex justify-center">
+    
+    <div class="w-full max-w-md bg-white rounded-3xl p-6 shadow-xl">
+        <h1 class="text-2xl font-bold text-blue-900 mb-4" id="planNameDisplay">CI Extra Plus</h1>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="text-sm font-bold text-slate-500">เพศ</label>
+                <select id="genderInput" class="w-full p-3 bg-slate-50 rounded-xl" onchange="currentGender = this.value; calculateUniversal()">
+                    <option value="male">ชาย</option>
+                    <option value="female">หญิง</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="text-sm font-bold text-slate-500">อายุ</label>
+                <input type="number" id="ageInput" value="30" class="w-full p-3 bg-slate-50 rounded-xl text-center font-bold" oninput="calculateUniversal()">
+            </div>
+            
+            <div>
+                <label class="text-sm font-bold text-slate-500">ทุนประกัน (บาท)</label>
+                <input type="text" id="sumInput" value="1,000,000" class="w-full p-3 bg-slate-50 rounded-xl text-center font-bold" oninput="calculateUniversal()">
+            </div>
+
+            <div class="p-4 bg-blue-50 rounded-2xl border border-blue-100 text-center">
+                <p class="text-sm font-bold text-blue-600 mb-1">เบี้ยประกัน (บาท/ปี)</p>
+                <p class="text-3xl font-black text-blue-900" id="premiumResult">0</p>
+            </div>
+
+            <button onclick="shareViaLine()" class="w-full py-4 bg-[#00B900] text-white font-bold rounded-2xl shadow-lg shadow-green-500/30">
+                <i class="fab fa-line text-xl mr-2"></i> แชร์ไปยังแชท LINE
+            </button>
+        </div>
+    </div>
+
+    <script src="database.js"></script>
+    <script src="app.js"></script>
+    
+    <script>
+        async function main() {
+            try {
+                // ** เอา LIFF ID จากข้อ 2 มาใส่ตรงนี้ **
+                await liff.init({ liffId: "ใส่_LIFF_ID_ของคุณที่นี่" });
+                
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                } else {
+                    // ดึงโปรไฟล์ผู้ใช้ (เอาไว้ทักทายได้)
+                    const profile = await liff.getProfile();
+                    console.log("Logged in as:", profile.displayName);
+                    
+                    // สั่งคำนวณครั้งแรกเมื่อเปิดหน้า
+                    calculateUniversal();
+                }
+            } catch (err) {
+                console.error("LIFF Initialization failed", err);
+                // ถ้า Error เปิดใน Browser ปกติก็ให้คำนวณได้
+                calculateUniversal(); 
+            }
+        }
+        main();
+    </script>
+</body>
+</html>
