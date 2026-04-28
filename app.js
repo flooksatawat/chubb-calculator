@@ -114,7 +114,6 @@ function calculate(source) {
 
 function manualTriggerPopup() { const calcData = calculate('sum'); if (calcData) openModal(calcData); }
 
-// UI Popup สรุปผลที่สวยเหมือนเดิม 100%
 function openModal(d) { 
     if(!d) return; 
     setText('modalGender', d.gender); setText('modalAge', d.age + " ปี"); setText('modalYears', d.years + " ปี"); 
@@ -183,8 +182,29 @@ function openGenericShareModal(type) {
     executeShare(text);
 }
 
+// ฟังก์ชันดักจับการคลิกและการกดค้างที่ปุ่ม Header (เอาตัวเดิมกลับมา 100%)
+function setupLongPress() {
+    const btn = document.getElementById('mainHeaderBtn');
+    if (!btn) return;
+    let pressTimer; let isLongPress = false; let startX, startY;
+    const handleStart = (x, y) => { isLongPress = false; startX = x; startY = y; pressTimer = setTimeout(() => { isLongPress = true; openPopup('insuranceConditionsModal'); if (navigator.vibrate) navigator.vibrate(50); }, 500); };
+    const handleMove = (x, y) => { if (!startX || !startY) return; if (Math.abs(x - startX) > 10 || Math.abs(y - startY) > 10) { clearTimeout(pressTimer); } };
+    btn.addEventListener('touchstart', (e) => { handleStart(e.touches[0].clientX, e.touches[0].clientY); }, {passive: true});
+    btn.addEventListener('touchmove', (e) => { handleMove(e.touches[0].clientX, e.touches[0].clientY); }, {passive: true});
+    btn.addEventListener('touchend', (e) => { clearTimeout(pressTimer); if (isLongPress) e.preventDefault(); });
+    btn.addEventListener('mousedown', (e) => { if (e.button !== 0) return; handleStart(e.clientX, e.clientY); });
+    btn.addEventListener('mousemove', (e) => { handleMove(e.clientX, e.clientY); });
+    btn.addEventListener('mouseup', () => clearTimeout(pressTimer));
+    btn.addEventListener('mouseleave', () => clearTimeout(pressTimer));
+    btn.addEventListener('contextmenu', (e) => e.preventDefault());
+    
+    // ตรงนี้คือหัวใจสำคัญ: ให้เปิดเมนู PlanSelectModal หากเป็นการคลิกปกติ
+    btn.addEventListener('click', (e) => { if (isLongPress) { e.preventDefault(); e.stopPropagation(); return; } openPlanModal(); });
+}
+
 window.onload = async () => { 
     document.querySelectorAll('.modal-overlay').forEach(modal => modal.classList.add('hidden'));
+    setupLongPress(); // <--- ติดตั้งระบบคลิกและกดค้างที่นี่
     try { await liff.init({ liffId: "ใส่_LIFF_ID_ของคุณที่นี่" }); } catch (err) {}
-    selectAppPlan("CI Extra Plus");
+    selectAppPlan("CI Extra Plus"); // เซ็ตแผนแรก
 };
