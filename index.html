@@ -667,4 +667,49 @@
             if (!lastCalculationData) return; const d = lastCalculationData; const p = d.premium; let amt = 0, label = ''; 
             if(type === 'monthly') { amt = Math.round(p * 0.09); label = 'รายเดือน'; } if(type === '3month') { amt = Math.round(p * 0.27); label = 'ราย 3 เดือน'; } if(type === '6month') { amt = Math.round(p * 0.52); label = 'ราย 6 เดือน'; } 
             const premOnlyText = `${amt.toLocaleString()}`;
-            let allText = `👤 เพศ ${d.gender}\n🎂
+            let allText = `👤 เพศ ${d.gender}\n🎂 อายุ ${d.age} ปี\n💰 ออมเงิน : ${amt.toLocaleString()} บาท (${label})\n⏳ ระยะเวลาออม ${d.years} ปี\n🛡️ ทุนประกัน ${formatNum(d.sum)} บาท\n`; 
+            allText += getShareTextByPlan(d);
+            pendingInstallmentData = { premOnly: premOnlyText, allText: allText, label: label };
+            document.getElementById('installmentShareTitle').innerText = 'แชร์ยอดชำระ' + label;
+            closePopup('installmentModal'); openPopup('installmentShareModal');
+        }
+
+        let currentShareType = '';
+        function openGenericShareModal(type) { if (type === 'all' && !lastCalculationData) return showCustomError("กรุณาคำนวณเบี้ยประกันก่อนแชร์"); currentShareType = type; openPopup('genericShareModal'); }
+
+        function handleGenericShare(platform) {
+            if (currentShareType === 'premium' || currentShareType === 'all') {
+                const d = lastCalculationData;
+                let text = `📊 สรุปแผน: ${currentAppPlan}\n👤 เพศ ${d.gender}\n🎂 อายุ ${d.age} ปี\n💰 เบี้ย : ${Math.round(d.premium).toLocaleString()} บาท/ปี\n🛡️ ทุนประกัน ${formatNum(d.sum)} บาท\n`; 
+                text += getShareTextByPlan(d);
+                if (platform === 'copy') { navigator.clipboard.writeText(text); alert("คัดลอกเรียบร้อยแล้ว"); closePopup('genericShareModal'); closePopup('resultModal'); } else { executeShare(text); closePopup('genericShareModal'); closePopup('resultModal'); }
+            } else if (currentShareType === 'installmentPrem' || currentShareType === 'installmentAll') {
+                const textToShare = currentShareType === 'installmentPrem' ? pendingInstallmentData.premOnly : pendingInstallmentData.allText; 
+                if (platform === 'copy') { navigator.clipboard.writeText(textToShare); alert("คัดลอกเรียบร้อยแล้ว"); closePopup('genericShareModal'); } else { executeShare(textToShare); closePopup('genericShareModal'); }
+            }
+        }
+
+        function setupLongPress() {
+            const btn = document.getElementById('mainHeaderBtn'); if (!btn) return;
+            let pressTimer; let isLongPress = false; let startX, startY;
+            const handleStart = (x, y) => { isLongPress = false; startX = x; startY = y; pressTimer = setTimeout(() => { isLongPress = true; openPopup('insuranceConditionsModal'); if (navigator.vibrate) navigator.vibrate(50); }, 500); };
+            const handleMove = (x, y) => { if (!startX || !startY) return; if (Math.abs(x - startX) > 10 || Math.abs(y - startY) > 10) { clearTimeout(pressTimer); } };
+            btn.addEventListener('touchstart', (e) => { handleStart(e.touches[0].clientX, e.touches[0].clientY); }, {passive: true});
+            btn.addEventListener('touchmove', (e) => { handleMove(e.touches[0].clientX, e.touches[0].clientY); }, {passive: true});
+            btn.addEventListener('touchend', (e) => { clearTimeout(pressTimer); if (isLongPress) e.preventDefault(); });
+            btn.addEventListener('mousedown', (e) => { if (e.button !== 0) return; handleStart(e.clientX, e.clientY); });
+            btn.addEventListener('mousemove', (e) => { handleMove(e.clientX, e.clientY); });
+            btn.addEventListener('mouseup', () => clearTimeout(pressTimer));
+            btn.addEventListener('mouseleave', () => clearTimeout(pressTimer));
+            btn.addEventListener('contextmenu', (e) => e.preventDefault());
+            btn.addEventListener('click', (e) => { if (isLongPress) { e.preventDefault(); e.stopPropagation(); return; } openPlanModal(); });
+        }
+
+        window.onload = async () => { 
+            document.querySelectorAll('.modal-overlay').forEach(modal => modal.classList.add('hidden'));
+            calculate('sum'); setupLongPress(); 
+            try { await liff.init({ liffId: "ใส่_LIFF_ID_ของคุณที่นี่" }); } catch (err) {}
+        };
+    </script>
+</body>
+</html>
