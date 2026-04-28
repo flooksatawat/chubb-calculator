@@ -24,6 +24,7 @@ function setGender(gender) {
 function handlePremiumInput(el) { let v = el.value.replace(/,/g, '').split('.')[0]; if (!isNaN(v) && v !== '') { el.value = Number(v).toLocaleString(); calculate('premium'); } }
 function handleSumInput(el) { let v = el.value.replace(/,/g, '').split('.')[0]; if (!isNaN(v) && v !== '') { el.value = Number(v).toLocaleString(); calculate('sum'); } }
 function handleCashFlowInput(el) { let v = el.value.replace(/,/g, '').split('.')[0]; if (!isNaN(v) && v !== '') { el.value = Number(v).toLocaleString(); currentCashFlow = Number(v); calculate(currentMode); } }
+function handleTpdInput(el) { let v = el.value.replace(/,/g, '').split('.')[0]; if (!isNaN(v) && v !== '') { el.value = Number(v).toLocaleString(); calculate(currentMode); } }
 
 function setQuickSum(val) { document.getElementById('sumInsuredInput').value = val.toLocaleString(); calculate('sum'); }
 function setQuickPremium(val) { document.getElementById('premiumInput').value = val.toLocaleString(); calculate('premium'); }
@@ -54,7 +55,7 @@ function selectAppPlan(planName) {
     if (!config.premPills || config.premPills.length === 0) { premPillsContainer.classList.add('hidden'); } 
     else { premPillsContainer.classList.remove('hidden'); premPillsContainer.innerHTML = config.premPills.map(val => `<button onclick="setQuickPremium(${val})" class="quick-pill">${val >= 1000000 ? (val/1000000)+' ล้าน' : (val/100000)+' แสน'}</button>`).join(''); }
 
-    const cashPillsContainer = document.getElementById('cashPillsWrapper');
+    const cashPillsContainer = document.getElementById('cashPillContainer');
     if (config.hasCash) { cashPillsContainer.innerHTML = CASH_PILLS.map(val => `<button onclick="setQuickCashFlow(${val})" class="quick-pill hover:bg-emerald-200">${val >= 1000000 ? (val/1000000)+' ล้าน' : (val/100000)+' แสน'}</button>`).join(''); }
 
     document.getElementById('premiumLabel').innerText = config.labelPrem || "ออมเงิน (บาท/ปี)";
@@ -83,7 +84,6 @@ function setPlan(subPlan) {
     calculate(currentMode); 
 }
 
-// Logic คำนวณเบี้ย
 function calculate(source) { 
     currentMode = source; const age = parseInt(document.getElementById('ageInput').value) || 0; 
     const config = PLANS_CONFIG[currentAppPlan];
@@ -114,7 +114,7 @@ function calculate(source) {
 
 function manualTriggerPopup() { const calcData = calculate('sum'); if (calcData) openModal(calcData); }
 
-// UI Popup สรุปผล
+// UI Popup สรุปผลที่สวยเหมือนเดิม 100%
 function openModal(d) { 
     if(!d) return; 
     setText('modalGender', d.gender); setText('modalAge', d.age + " ปี"); setText('modalYears', d.years + " ปี"); 
@@ -124,16 +124,16 @@ function openModal(d) {
     switch(currentAppPlan) {
         case "CI Extra Plus":
             const sumStr = formatNum(d.sum); const extraCI = formatNum(d.sum * 0.25); const majorCI = formatNum(d.sum * 0.75); const medExtra = formatNum(d.sum * 0.10); const maturityStr = formatNum(d.sum * 1.05); const maturityExtraStr = formatNum(d.sum * 0.05);
-            html += `<div class="p-4 bg-white rounded-2xl shadow-sm border border-blue-100 border-l-4 border-l-blue-500 mb-3"><p class="text-[10px] text-blue-500 font-bold uppercase mb-0.5">ออมเงินต่อปี</p><p class="text-[22px] font-black text-blue-900">${Math.round(d.premium).toLocaleString()} บาท</p></div>`;
-            if (d.age <= 15) { html += `<div class="flex justify-between items-center p-3 bg-white rounded-xl shadow-sm border border-sky-100 mb-2"><span class="text-xs text-slate-600 font-bold">ตรวจพบ 1 ใน 15 โรคเด็ก</span><span class="text-base font-black text-sky-600">${sumStr}</span></div>`; }
+            html += `<div class="flex justify-between items-center p-4 bg-white rounded-2xl shadow-sm border border-blue-100 border-l-4 border-l-blue-500 mb-3"><span class="text-[13px] text-slate-500 font-bold flex items-center gap-2"><i class="fas fa-wallet text-blue-400"></i> ออมเงิน</span><span class="text-[18px] font-black text-blue-600">${Math.round(d.premium).toLocaleString()}</span></div>`;
+            if (d.age <= 15) { html += `<div class="flex flex-col p-4 bg-white rounded-2xl shadow-sm border border-sky-100 mb-3"><div class="flex justify-between items-center mb-2"><span class="text-[12px] text-slate-600 font-bold">ตรวจพบ 1 ใน 15 โรคเด็ก</span><span class="text-[16px] font-black text-sky-600">${sumStr}</span></div><button onclick="openPopup('disease15Modal')" class="text-[11px] text-sky-600 bg-sky-50 py-1.5 rounded-lg font-bold hover:bg-sky-100 transition-colors w-full">ดูรายชื่อโรค</button></div>`; }
             html += `
-            <div class="flex justify-between items-center p-3 bg-white rounded-xl shadow-sm border border-amber-100 mb-2"><span class="text-xs text-slate-600 font-bold">1 ใน 5 โรคร้าย (จ่าย 4 ครั้ง)</span><span class="text-base font-black text-amber-600">${extraCI}</span></div>
-            <div class="flex justify-between items-center p-3 bg-white rounded-xl shadow-sm border border-rose-100 mb-2"><span class="text-xs text-slate-600 font-bold">1 ใน 45 โรคร้ายระยะรุนแรง</span><span class="text-base font-black text-rose-600">${majorCI}</span></div>
-            <div class="p-4 bg-indigo-50 rounded-2xl border border-indigo-100 shadow-sm mt-3"><p class="text-xs text-indigo-700 font-bold mb-1"><i class="fas fa-shield-heart mr-1"></i> กรณีเสียชีวิต / ครบสัญญา</p><p class="text-lg font-black text-indigo-900">${maturityStr} บาท</p><p class="text-[9px] text-indigo-500 mt-1">* ทุพพลภาพสิ้นเชิงถาวร (TPD) รับ 2 เท่า (${formatNum(d.sum*2)} บาท)</p></div>`;
+            <div class="flex flex-col p-4 bg-white rounded-2xl shadow-sm border border-amber-100 mb-3"><div class="flex justify-between items-center mb-1"><span class="text-[12px] text-slate-600 font-bold">1 ใน 5 โรคร้าย (จ่ายสูงสุด 4 ครั้ง)</span><span class="text-[16px] font-black text-amber-600">${extraCI}</span></div><button onclick="openPopup('disease5Modal')" class="text-[11px] text-amber-600 bg-amber-50 py-1.5 rounded-lg font-bold hover:bg-amber-100 transition-colors w-full mt-2">ดูรายชื่อโรค</button></div>
+            <div class="flex flex-col p-4 bg-white rounded-2xl shadow-sm border border-rose-100 mb-3"><div class="flex justify-between items-center mb-1"><span class="text-[12px] text-slate-600 font-bold">1 ใน 45 โรคร้ายระยะรุนแรง</span><span class="text-[16px] font-black text-rose-600">${majorCI}</span></div><p class="text-[10px] text-slate-400 mb-2">* ยกเว้นการออม และมีค่ารักษาเพิ่มเติม <span class="font-bold text-slate-600">${medExtra}</span> บาท</p><div class="flex gap-2"><button onclick="openPopup('extraPayConditionsModal')" class="flex-1 text-[11px] text-slate-600 bg-slate-100 py-1.5 rounded-lg font-bold hover:bg-slate-200 transition-colors">เงื่อนไข</button><button onclick="openPopup('disease45Modal')" class="flex-1 text-[11px] text-rose-600 bg-rose-50 py-1.5 rounded-lg font-bold hover:bg-rose-100 transition-colors">รายชื่อโรค</button></div></div>
+            <div class="flex flex-col p-4 bg-white rounded-2xl shadow-sm border border-indigo-100"><div class="flex justify-between items-center mb-1"><span class="text-[12px] text-slate-600 font-bold">จากไป หรือ ครบสัญญา</span><span class="text-[16px] font-black text-indigo-600">${maturityStr}</span></div><p class="text-[10px] text-slate-400 mb-2">* ทุพพลภาพสิ้นเชิงถาวร (TPD) รับ 2 เท่า (${formatNum(d.sum*2)} บาท)</p><button onclick="openPopup('maturityExtraModal')" class="text-[11px] text-indigo-600 bg-indigo-50 py-1.5 rounded-lg font-bold hover:bg-indigo-100 transition-colors w-full">ดูเงื่อนไข</button></div>`;
             break;
         case "Century Life + TPD":
-            html += `<div class="p-4 bg-white rounded-2xl shadow-sm border border-emerald-100 border-l-4 border-l-emerald-500 mb-3"><p class="text-[10px] text-emerald-600 font-bold uppercase mb-0.5">ออมเงินต่อปี</p><p class="text-[22px] font-black text-emerald-900">${Math.round(d.premium).toLocaleString()} บาท</p></div>`;
-            html += `<div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 shadow-sm mt-3"><p class="text-xs text-emerald-700 font-bold mb-1"><i class="fas fa-shield-halved mr-1"></i> ความคุ้มครองชีวิต / ครบสัญญา</p><p class="text-lg font-black text-emerald-900">${formatNum(d.sum)} บาท</p><p class="text-[9px] text-emerald-600 mt-1">* ทุพพลภาพสิ้นเชิงถาวร (TPD) รับความคุ้มครองเพิ่มเป็น 2 เท่า (${formatNum(d.sum*2)} บาท)</p></div>`;
+            html += `<div class="flex justify-between items-center p-4 bg-white rounded-2xl shadow-sm border border-emerald-100 border-l-4 border-l-emerald-500 mb-3"><span class="text-[13px] text-slate-500 font-bold flex items-center gap-2"><i class="fas fa-wallet text-emerald-400"></i> ออมเงิน</span><span class="text-[18px] font-black text-emerald-600">${Math.round(d.premium).toLocaleString()}</span></div>`;
+            html += `<div class="flex flex-col p-4 bg-white rounded-2xl shadow-sm border border-indigo-100"><div class="flex justify-between items-center mb-1"><span class="text-[12px] text-slate-600 font-bold">ความคุ้มครองชีวิต</span><span class="text-[16px] font-black text-indigo-600">${formatNum(d.sum)}</span></div><p class="text-[10px] text-slate-400 mb-2">* ทุพพลภาพสิ้นเชิงถาวร (TPD) รับ 2 เท่า (${formatNum(d.sum*2)} บาท)</p></div>`;
             break;
         default:
             html += `<div class="p-4 text-center text-sm text-slate-500">รอตั้งค่าการแสดงผลแบบเฉพาะของ ${currentAppPlan}</div>`;
