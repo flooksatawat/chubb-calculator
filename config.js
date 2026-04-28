@@ -34,7 +34,7 @@ const PLANS_CONFIG = {
         labelPrem: "เบี้ยประกัน (บาท/ปี)",
         showSum: true, showPrem: true, hasCash: false, is3D: false,
         sumPills: [5000000, 10000000, 50000000, 100000000],
-        premPills: [], // ตัดปุ่มเบี้ยประกันออก
+        premPills: [], // ไม่มีปุ่มเบี้ย
         defaultSum: 5000000
     },
     "Convertable Term": {
@@ -59,7 +59,7 @@ const PLANS_CONFIG = {
         uiType: "table",
         is3D: true, 
         showSum: true, labelSum: "ทุนประกันสัญญาหลัก (CL)",
-        showPrem: false, // ตัดเบี้ยรวมออกตามภาพ
+        showPrem: false, // ไม่มีช่องเบี้ยออมเงิน
         hasCash: false,
         sumPills: [100000, 200000, 500000],
         defaultSum: 200000
@@ -68,29 +68,29 @@ const PLANS_CONFIG = {
         subtitle: "สินทรัพย์กระแสเงินสด",
         subPlans: ["WXN10", "WXN15"],
         uiType: "table",
-        showSum: false, // ตัดทุนประกันออก
-        showPrem: true,
-        hasCash: true,
+        showSum: false, // ไม่มีช่องทุน
+        showPrem: true, hasCash: true, is3D: false,
         premPills: [100000, 300000, 500000, 1000000]
     },
     "24 TX": {
         subtitle: "สินทรัพย์กระแสเงินสด",
         subPlans: ["TX24"],
         uiType: "table",
-        showSum: false, // ตัดทุนประกันออก
-        showPrem: true,
-        hasCash: true,
+        showSum: false, // ไม่มีช่องทุน
+        showPrem: true, hasCash: true, is3D: false,
         premPills: [50000, 100000, 200000]
     },
     "868 / 818 Elite Saving": {
         subtitle: "สินทรัพย์กระแสเงินสด",
         subPlans: ["Elite868"],
         uiType: "table",
-        showSum: false, // ตัดทุนประกันออก
-        showPrem: true,
-        hasCash: true,
+        showSum: false, // ไม่มีช่องทุน
+        showPrem: true, hasCash: true, is3D: false,
         premPills: [500000, 1000000, 2000000]
     }
 };
 
 const CASH_PILLS = [120000, 300000, 600000, 1000000];
+const allInsurancePlans = Object.keys(PLANS_CONFIG).map(key => ({
+    name: key, desc: PLANS_CONFIG[key].subtitle, icon: key === "CI Extra Plus" ? "fas fa-shield-heart" : (key.includes("Health") ? "fas fa-hand-holding-medical" : "fas fa-star"), color: "text-blue-500", bg: "bg-blue-100"
+}));
