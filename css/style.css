@@ -1,0 +1,29 @@
+/* ==================== BASE & RESET ==================== */
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { 
+    font-family: 'Kanit', sans-serif; 
+    background-color: #f4f7fb; 
+    display: flex; justify-content: center; align-items: center; 
+    min-height: 100vh; min-height: 100dvh; margin: 0; color: #0f172a; 
+    overscroll-behavior-y: none; 
+}
+/* ... (คัดลอก CSS เดิมทั้งหมดมาวางต่อที่นี่จนจบ) ... */
+/* ==================== MODALS ==================== */
+.modal-overlay { 
+    background-color: rgba(15, 23, 42, 0.5); 
+    backdrop-filter: blur(10px); 
+    -webkit-backdrop-filter: blur(10px); 
+    transition: opacity 0.3s ease; 
+    opacity: 0; 
+    pointer-events: none; 
+    visibility: hidden; 
+    z-index: 1000; 
+    position: fixed; /* ตัวนี้สำคัญมาก ทำให้มันลอยอยู่เหนือหน้าจอ */
+    inset: 0; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    padding: 1rem; 
+}
+.modal-overlay.show { opacity: 1; pointer-events: auto; visibility: visible; }
+.hidden { display: none !important; }
